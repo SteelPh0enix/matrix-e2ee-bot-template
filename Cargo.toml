@@ -1,0 +1,17 @@
+[package]
+name = "matrix-bot-test"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.102"
+dotenvy = { version = "0.15.7", features = ["clap"] }
+matrix-sdk = { version = "0.16.0", features = [
+    "anyhow",
+    "e2e-encryption",
+    "markdown",
+    "sqlite",
+] }
+tokio = { version = "1.50.0", features = ["rt-multi-thread"] }
+tracing-subscriber = "0.3.22"
+url = "2.5.8"
