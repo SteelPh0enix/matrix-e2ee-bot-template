@@ -44,6 +44,11 @@ async fn main() -> Result<()> {
         .await
         .context("Failed to bootstrap cross-signing")?;
 
+    // Ensure key backup is active (prevents "no backup key found" warnings)
+    encryption::ensure_backup_enabled(&client)
+        .await
+        .context("Failed to ensure backup is enabled")?;
+
     // Register handlers that should catch events from the initial sync:
     // - Autojoin: accepts pending invites from the owner
     // - Verification: handles pending verification requests

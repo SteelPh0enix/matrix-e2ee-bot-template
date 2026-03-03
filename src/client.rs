@@ -88,6 +88,7 @@ async fn restore_session(session_file: &Path) -> Result<Client> {
         .sqlite_store(&client_session.db_path, Some(&client_session.passphrase))
         .with_encryption_settings(EncryptionSettings {
             auto_enable_cross_signing: true,
+            auto_enable_backups: true,
             ..Default::default()
         })
         .build()
@@ -120,6 +121,7 @@ async fn login_new_session(config: &Config) -> Result<Client> {
         .sqlite_store(&db_path, Some(config.matrix_bot_store_password.as_str()))
         .with_encryption_settings(EncryptionSettings {
             auto_enable_cross_signing: true,
+            auto_enable_backups: true,
             ..Default::default()
         })
         .build()

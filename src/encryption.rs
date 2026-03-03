@@ -131,6 +131,37 @@ async fn sign_own_device(client: &Client) -> Result<()> {
     Ok(())
 }
 
+/// Ensure a key backup exists and is enabled.
+///
+/// If no backup is active locally, deletes any stale server-side backup
+/// and creates a fresh one. This prevents the recurring
+/// "Trying to backup room keys but no backup key was found" warning.
+pub async fn ensure_backup_enabled(client: &Client) -> Result<()> {
+    let backups = client.encryption().backups();
+
+    if backups.are_enabled().await {
+        tracing::info!("Key backup is already enabled");
+        return Ok(());
+    }
+
+    tracing::info!("Key backup not enabled, creating a new backup...");
+
+    // Delete any stale backup from the server first, so we start clean
+    backups
+        .disable_and_delete()
+        .await
+        .context("Failed to delete stale backup")?;
+
+    // Create a fresh backup with a new recovery key
+    backups
+        .create()
+        .await
+        .context("Failed to create key backup")?;
+
+    tracing::info!("Key backup created and enabled");
+    Ok(())
+}
+
 /// Request verification with the owner and wait for the flow to complete.
 ///
 /// The bot is the **initiator** here: it sends the request, waits for the owner
