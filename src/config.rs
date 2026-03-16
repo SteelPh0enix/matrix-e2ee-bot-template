@@ -5,6 +5,9 @@ use std::path::PathBuf;
 use anyhow::{Context, Result};
 use dotenvy::from_path;
 
+/// Project name used for cache directory paths.
+const PROJECT_NAME: &str = "matrix-bot-test";
+
 /// Configuration loaded from environment variables.
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -45,11 +48,48 @@ impl Config {
 
     /// Get the data directory path for persistent storage.
     pub fn data_dir() -> PathBuf {
-        PathBuf::from("data")
+        let home_dir =
+            std::env::home_dir().unwrap_or_else(|| PathBuf::from(".").canonicalize().unwrap());
+        home_dir.join(".cache").join(PROJECT_NAME).join("data")
     }
 
     /// Get the session file path.
     pub fn session_file() -> PathBuf {
         Self::data_dir().join("session.json")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_data_dir_is_absolute() {
+        let data_dir = Config::data_dir();
+        assert!(data_dir.is_absolute());
+
+        // Check that path contains the expected structure
+        let path_str = data_dir.to_string_lossy();
+        assert!(path_str.contains(".cache/matrix-bot-test/data"));
+    }
+
+    #[test]
+    fn test_session_file_is_absolute() {
+        let session_file = Config::session_file();
+        assert!(session_file.is_absolute());
+
+        // Check that path contains the expected structure
+        let path_str = session_file.to_string_lossy();
+        assert!(path_str.contains(".cache/matrix-bot-test/data/session.json"));
+    }
+
+    #[test]
+    fn test_session_file_is_in_data_dir() {
+        let data_dir = Config::data_dir();
+        let session_file = Config::session_file();
+
+        // session_file should be inside data_dir
+        assert!(session_file.starts_with(&data_dir));
+        assert_eq!(session_file.file_name().unwrap(), "session.json");
     }
 }
