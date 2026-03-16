@@ -6,7 +6,7 @@ use anyhow::{Context, Result};
 use dotenvy::from_path;
 
 /// Project name used for cache directory paths.
-const PROJECT_NAME: &str = "matrix-bot-test";
+pub const PROJECT_NAME: &str = "matrix-bot-test";
 
 /// Configuration loaded from environment variables.
 #[derive(Debug, Clone)]

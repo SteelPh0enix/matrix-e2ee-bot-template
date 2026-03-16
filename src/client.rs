@@ -4,13 +4,16 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use matrix_sdk::{
-    Client, authentication::matrix::MatrixSession, config::SyncSettings,
-    encryption::EncryptionSettings, ruma::api::client::filter::FilterDefinition,
+    Client,
+    authentication::matrix::MatrixSession,
+    config::SyncSettings,
+    encryption::{BackupDownloadStrategy, EncryptionSettings},
+    ruma::api::client::filter::FilterDefinition,
 };
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 
-use crate::config::Config;
+use crate::config::{Config, PROJECT_NAME};
 
 /// The data needed to re-build a client.
 #[derive(Debug, Serialize, Deserialize)]
@@ -122,7 +125,7 @@ async fn login_new_session(config: &Config) -> Result<Client> {
         .with_encryption_settings(EncryptionSettings {
             auto_enable_cross_signing: true,
             auto_enable_backups: true,
-            ..Default::default()
+            backup_download_strategy: BackupDownloadStrategy::AfterDecryptionFailure,
         })
         .build()
         .await
@@ -133,7 +136,7 @@ async fn login_new_session(config: &Config) -> Result<Client> {
     let response = client
         .matrix_auth()
         .login_username(&config.matrix_bot_username, &config.matrix_bot_password)
-        .initial_device_display_name("matrix-bot-test")
+        .initial_device_display_name(PROJECT_NAME)
         .await
         .context("Failed to login")?;
 
@@ -145,7 +148,7 @@ async fn login_new_session(config: &Config) -> Result<Client> {
         .wait_for_e2ee_initialization_tasks()
         .await;
 
-    // Persist the session
+    // Save the session
     let user_session = client
         .matrix_auth()
         .session()
@@ -167,7 +170,7 @@ async fn login_new_session(config: &Config) -> Result<Client> {
         .await
         .context("Failed to write session file")?;
 
-    tracing::info!("Session persisted to {}", session_file.display());
+    tracing::info!("Session saved to {}", session_file.display());
 
     Ok(client)
 }
