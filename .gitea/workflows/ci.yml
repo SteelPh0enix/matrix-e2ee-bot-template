@@ -50,18 +50,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-target-
 
-      # Cache Nix store and environment
-      - name: Cache Nix environment
-        uses: https://gitea.com/actions/cache@v5
-        with:
-          path: |
-            /nix/
-            ~/.nix-profile/
-            ~/.local/state/nix/
-          key: ${{ runner.os }}-nix-store-${{ hashFiles('flake.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-nix-store-
-
       - name: Setup development environment
         run: nix develop
 
